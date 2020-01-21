@@ -1,0 +1,143 @@
+//***前面通过递归的方法创建和遍历二叉树，现在用另一种方法：迭代，在这里需要用到另一种辅助的数据结构即：堆栈（顺序栈）***
+#include <stdio.h>
+#include <stdlib.h>
+#define N 50  //栈的空间大小
+#define OVERFLOW -1
+
+typedef char TElemType;
+
+typedef struct BiTNode {
+	TElemType data;
+	struct BiTNode *lchild, *rchild;
+}BiTNode, *BiTree;
+
+//相关函数
+visit(TElemType c) {
+	//if (' '!=c) printf("%c", c);
+	printf("%c", c);
+}
+
+//先序次序创建二叉树
+void CreateBiTree_iteration(BiTree *T) {
+	//***初始化数据结构：堆栈(实际上只是一个指针变量数组）***很关键的一步
+	//在这里不需要对栈作free动作，实际上Stack[N]现在是存放在栈区的指针数组变量和传统的顺序栈在堆区malloc开辟空间不同
+	BiTree Stack[N], rear, p1, p2;
+	TElemType c;
+	int top, base;
+	top = 0; base = 0;
+	//二叉树根节点先入栈，作栈低元素
+	scanf("%c", &c);
+	if (' ' != c){
+		if (!((*T) = (BiTree)malloc(sizeof(BiTNode)))) exit(OVERFLOW);
+		(*T)->data = c;
+		(*T)->lchild = NULL;
+		(*T)->rchild = NULL;
+		rear = (*T);
+		Stack[top++] = rear;//入栈
+		scanf("%c", &c);
+	}
+	else{
+		printf("\n二叉树输入错误，请重新输入！\n\n");
+		exit(OVERFLOW);
+	}
+	//scanf("%c", &c);
+	while (c) {
+		while (' ' != c) {
+			if (!(p1 = (BiTree)malloc(sizeof(BiTNode)))) exit(OVERFLOW);
+			p1->data = c;
+			p1->lchild = NULL;
+			p1->rchild = NULL;
+			rear->lchild = p1;
+			rear = p1;
+			Stack[top++] = rear;//入栈
+			scanf("%c", &c);
+		}
+		while (' ' == c) {
+			if (top == base) goto there;
+			p2 = Stack[--top];//弹栈
+			scanf("%c", &c);
+		}
+		if (!((p2->rchild) = (BiTree)malloc(sizeof(BiTNode)))) exit(OVERFLOW);
+		(p2->rchild)->lchild = NULL;
+		(p2->rchild)->rchild = NULL;
+		(p2->rchild)->data = c;
+		Stack[top++] = rear;//入栈
+		rear = (p2->rchild);
+		scanf("%c", &c);
+	}
+there:
+	;
+}
+
+//先序遍历二叉树
+void PreOrderTraverse(BiTree T) {
+	if (NULL != T)
+	{
+		visit(T->data);
+		PreOrderTraverse(T->lchild);
+		PreOrderTraverse(T->rchild);
+	}
+}
+
+//中序遍历二叉树
+void InOrderTraverse(BiTree T) {
+	if (NULL != T)
+	{
+		InOrderTraverse(T->lchild);
+		visit(T->data);
+		InOrderTraverse(T->rchild);
+	}
+}
+
+////中序迭代遍历二叉树（借助堆栈结构）
+//void InOrderTraverse_iteration(BiTree T) {
+//	//借助数据结构：堆栈（实际是char类型的数组，增加了一个top和base下标，该下标类似于传统顺序栈的top和base指针，即数组下标和指针功能的互换）
+//	//同理，此时Stack[N]也是栈区变脸，最后无需free和destroy，该层栈的函数调用结束后，这个栈区变量会自动销毁
+//	TElemType Stack[N], p;
+//	int top, base;
+//	top = base = 0;
+//	while (T != NULL || top != base) {
+//		while (T != NULL) {
+//			Stack[top++] = T->data;
+//			T = T->lchild;
+//		}
+//		p=Stack[--top];//弹出栈并打印
+//		visit(p);
+//		//发现无法实现下面功能，在下面重试，把char类型的数组改成BiTree类型的指针变量数组
+//		//T = p->rchild;
+//	}
+//}
+
+//中序迭代遍历二叉树（借助堆栈结构）
+void InOrderTraverse_iteration(BiTree T) {
+	//借助数据结构：堆栈（实际是BiTree类型的指针变量数组，增加了一个top和base下标，该下标类似于传统顺序栈的top和base指针，即数组下标和指针功能的互换）
+	//同理，此时Stack[N]也是栈区变量，最后无需free和destroy，该层栈的函数调用结束后，这个栈区变量会自动销毁
+	BiTree Stack[N], p;
+	int top, base;
+	top = base = 0;
+	while (T != NULL || top != base) {
+		while (T != NULL) {
+			Stack[top++] = T;
+			T = T->lchild;
+		}
+		p = Stack[--top];//弹出栈并打印
+		visit(p->data);
+		T = p->rchild;
+	}
+}
+
+int main()
+{
+	BiTree T = NULL;
+
+	printf("请按先序法输入二叉树元素,并用迭代方法创建二叉树：\n");
+	CreateBiTree_iteration(&T);
+	printf("\n前序递归遍历结果为：\n");
+	PreOrderTraverse(T);
+	printf("\n中序递归遍历结果为：\n");
+	InOrderTraverse(T);
+	printf("\n中序迭代遍历结果为：\n");
+	InOrderTraverse_iteration(T);
+	printf("\n\n");
+	getchar();
+}
